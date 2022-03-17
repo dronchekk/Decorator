@@ -7,10 +7,23 @@
 
 import UIKit
 
-class NewsViewController: UIViewController {
+protocol getData {
+    dataSource.isLoading = true
+    PostService.shared.obtainAllNews(dataSource: dataSource) { (_) in
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.dataSource.isLoading = false
+
+            guard let newSections = self.dataSource.addSectionIndexs else { return }
+            self.tableView.insertSections(newSections, with: .fade)
+            self.refreshControl.endRefreshing()
+        }
+    }
+}
+
+class NewsViewController: UIViewController, getData {
 
     @IBOutlet private var tableView: UITableView!
-
     var dataSource = NewsDataSource()
 
     private var refreshControl: UIRefreshControl = {
@@ -32,13 +45,14 @@ private extension NewsViewController {
         }
     }
 
+
+
     func makeRequest() {
         dataSource.isLoading = true
         PostService.shared.obtainAllNews(dataSource: dataSource) { (_) in
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.dataSource.isLoading = false
-//                self.tableView.reloadData()
 
                 guard let newSections = self.dataSource.addSectionIndexs else { return }
                 self.tableView.insertSections(newSections, with: .fade)
